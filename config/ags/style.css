@@ -1,0 +1,544 @@
+* {
+    font-family: "JetBrains Mono", monospace;
+    color: #D8DEE9;
+}
+
+window {
+    background-color: transparent;
+}
+
+.panel {
+    background-color: rgba(46, 52, 64, 0.92);
+    border: 2px solid #88C0D0;
+    border-radius: 12px;
+    padding: 32px 40px;
+    min-width: 480px;
+}
+
+/* Top row: clock on left, right column on right */
+.panel-top-row {
+    /* horizontal box - children sit side by side */
+}
+
+/* Left side */
+.clock-box {
+    /* expand to push right column to the far right */
+}
+
+.time {
+    font-size: 52px;
+    font-weight: bold;
+    color: #ECEFF4;
+    margin-bottom: 4px;
+}
+
+.date {
+    font-size: 16px;
+    color: #81A1C1;
+}
+
+.run-menu-btn,
+.run-menu-btn:focus,
+.run-menu-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border: 2px solid #4C566A;
+    border-radius: 8px;
+    padding: 6px 0;
+    margin-top: 16px;
+    color: #D8DEE9;
+    font-size: 13px;
+}
+
+.run-menu-btn:hover {
+    background: rgba(136, 192, 208, 0.15);
+    border-color: #88C0D0;
+    color: #ECEFF4;
+}
+
+/* Quick launch row */
+.quick-launch {
+    margin-top: 12px;
+}
+
+/* Service toggle buttons (seafile / syncthing) */
+.service-btns {
+    margin-top: 10px;
+}
+
+.quick-btn,
+.quick-btn:focus,
+.quick-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border: 2px solid #4C566A;
+    border-radius: 9999px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    margin-left: 6px;
+}
+
+.quick-btn:first-child {
+    margin-left: 0;
+}
+
+.quick-btn:hover {
+    background: rgba(136, 192, 208, 0.15);
+    border-color: #88C0D0;
+}
+
+.quick-icon {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands";
+    font-size: 16px;
+    font-weight: 900;
+    color: #D8DEE9;
+}
+
+.quick-btn:hover .quick-icon {
+    color: #ECEFF4;
+}
+
+/* Right column */
+.right-col {
+    margin-left: 32px;
+}
+
+/* Tray */
+.tray {
+    background-color: rgba(59, 66, 82, 0.8);
+    border: 1px solid #4C566A;
+    border-radius: 8px;
+    padding: 4px 8px;
+    margin-bottom: 12px;
+}
+
+.tray-item {
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 24px;
+    min-height: 24px;
+}
+
+.tray-item:hover {
+    background-color: rgba(136, 192, 208, 0.2);
+}
+
+/* Workspace switcher */
+.ws-switcher {
+}
+
+.ws-btn,
+.ws-btn:focus,
+.ws-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border: 2px solid #4C566A;
+    border-radius: 6px;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0 6px;
+    margin-left: 6px;
+}
+
+.ws-btn:first-child {
+    margin-left: 0;
+}
+
+.ws-btn:hover {
+    background: rgba(136, 192, 208, 0.15);
+    border-color: #88C0D0;
+}
+
+.ws-btn-active,
+.ws-btn-active:focus,
+.ws-btn-active:active {
+    border-color: #88C0D0;
+    background: rgba(136, 192, 208, 0.2);
+}
+
+.ws-btn-label {
+    font-size: 12px;
+    color: #8FBCBB;
+}
+
+.ws-btn-active .ws-btn-label {
+    color: #88C0D0;
+    font-weight: bold;
+}
+
+/* Workspace info button */
+.workspace-info-btn,
+.workspace-info-btn:focus,
+.workspace-info-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 6px 8px;
+}
+
+.workspace-info-btn:hover {
+    background: rgba(136, 192, 208, 0.08);
+    border-color: #4C566A;
+}
+
+/* Workspace info */
+.workspace-info {
+}
+
+.ws-name {
+    font-size: 13px;
+    font-weight: bold;
+    color: #88C0D0;
+    margin-bottom: 6px;
+}
+
+.window-list {
+}
+
+.window-title {
+    font-size: 12px;
+    color: #8FBCBB;
+    margin-bottom: 3px;
+}
+
+/* Power buttons */
+.ctrl-buttons {
+    margin-bottom: 8px;
+}
+
+/* System sliders (volume / brightness / battery) */
+.system-sliders {
+    margin-bottom: 10px;
+}
+
+.slider-row {
+    margin-bottom: 8px;
+}
+
+.slider-row:last-child {
+    margin-bottom: 0;
+}
+
+.slider-icon {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Free Solid";
+    font-weight: 900;
+    font-size: 14px;
+    color: #88C0D0;
+    min-width: 20px;
+    margin-right: 10px;
+}
+
+.slider-track {
+    margin-right: 8px;
+}
+
+.slider-bar {
+    min-height: 6px;
+    border-radius: 3px;
+}
+
+.slider-bar trough {
+    background: #3B4252;
+    border-radius: 3px;
+    min-height: 6px;
+    border: none;
+}
+
+.slider-bar progress {
+    background: #88C0D0;
+    border-radius: 3px;
+    min-height: 6px;
+    border: none;
+}
+
+.slider-pct {
+    font-size: 12px;
+    color: #8FBCBB;
+    min-width: 38px;
+    margin-left: 4px;
+}
+
+.slider-btns {
+}
+
+.slider-btn,
+.slider-btn:focus,
+.slider-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border: 1px solid #4C566A;
+    border-radius: 4px;
+    min-width: 22px;
+    min-height: 22px;
+    padding: 0;
+    margin-left: 4px;
+}
+
+.slider-btn:first-child {
+    margin-left: 0;
+}
+
+.slider-btn:hover {
+    background: rgba(136, 192, 208, 0.15);
+    border-color: #88C0D0;
+}
+
+.slider-btn-icon {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Free Solid";
+    font-weight: 900;
+    font-size: 10px;
+    color: #D8DEE9;
+}
+
+.ctrl-btn,
+.ctrl-btn:focus,
+.ctrl-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 9999px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    margin-left: 10px;
+    border: 2px solid #4C566A;
+}
+
+.ctrl-btn:first-child {
+    margin-left: 0;
+}
+
+.ctrl-on,
+.ctrl-on:focus,
+.ctrl-on:active {
+    border-color: #88C0D0;
+    background: rgba(136, 192, 208, 0.15);
+}
+
+.ctrl-on .power-icon {
+    color: #88C0D0;
+}
+
+.ctrl-off .power-icon {
+    color: #4C566A;
+}
+
+.ctrl-btn:hover {
+    background: rgba(136, 192, 208, 0.25);
+    border-color: #88C0D0;
+}
+
+.ctrl-btn:hover .power-icon {
+    color: #ECEFF4;
+}
+
+.power-buttons {
+}
+
+.power-btn,
+.power-btn:focus,
+.power-btn:active {
+    background: rgba(46, 52, 64, 0.0);
+    box-shadow: none;
+    border: 2px solid #4C566A;
+    border-radius: 9999px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    margin-left: 10px;
+}
+
+.power-btn:first-child {
+    margin-left: 0;
+}
+
+.power-btn:hover {
+    background: rgba(136, 192, 208, 0.15);
+    border-color: #88C0D0;
+}
+
+.power-icon {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Free Solid";
+    font-size: 16px;
+    font-weight: 900;
+    color: #D8DEE9;
+}
+
+.power-btn:hover .power-icon {
+    color: #ECEFF4;
+}
+
+/* Confirmation row */
+.confirm-box {
+    margin-top: 2px;
+}
+
+.confirm-label {
+    font-size: 13px;
+    color: #D8DEE9;
+    margin-right: 12px;
+}
+
+.confirm-btn,
+.confirm-btn:focus,
+.confirm-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 6px;
+    padding: 4px 14px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-left: 6px;
+}
+
+.confirm-yes,
+.confirm-yes:focus,
+.confirm-yes:active {
+    border: 2px solid #BF616A;
+    color: #BF616A;
+}
+
+.confirm-yes:hover {
+    background: rgba(191, 97, 106, 0.2);
+}
+
+.confirm-no,
+.confirm-no:focus,
+.confirm-no:active {
+    border: 2px solid #4C566A;
+    color: #D8DEE9;
+}
+
+.confirm-no:hover {
+    background: rgba(136, 192, 208, 0.15);
+    border-color: #88C0D0;
+}
+
+/* ── Workspace Switcher Panel ─────────────────────────────────────────────── */
+
+.switcher-panel {
+    background-color: rgba(46, 52, 64, 0.95);
+    border: 2px solid #88C0D0;
+    border-radius: 12px;
+    padding: 28px 36px;
+    min-width: 420px;
+}
+
+.switcher-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #4C566A;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+}
+
+.switcher-ws-btn,
+.switcher-ws-btn:focus,
+.switcher-ws-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border: 1px solid #4C566A;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+}
+
+.switcher-ws-btn:last-child {
+    margin-bottom: 0;
+}
+
+.switcher-ws-btn:hover {
+    background: rgba(136, 192, 208, 0.12);
+    border-color: #88C0D0;
+}
+
+.switcher-ws-name {
+    font-size: 13px;
+    font-weight: bold;
+    color: #88C0D0;
+    margin-bottom: 4px;
+}
+
+.switcher-window-title {
+    font-size: 12px;
+    color: #8FBCBB;
+    margin-bottom: 2px;
+}
+
+.switcher-window-title:last-child {
+    margin-bottom: 0;
+}
+
+/* ── Settings Panel ───────────────────────────────────────────────────────── */
+
+.settings-panel {
+    background-color: rgba(46, 52, 64, 0.95);
+    border: 2px solid #88C0D0;
+    border-radius: 12px;
+    padding: 28px 36px;
+    min-width: 480px;
+    min-height: 320px;
+}
+
+.settings-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ECEFF4;
+    margin-bottom: 20px;
+}
+
+.settings-section-title {
+    font-size: 11px;
+    font-weight: bold;
+    color: #81A1C1;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.idle-preset-section {
+    margin-top: 4px;
+}
+
+.idle-preset-row {
+    margin-bottom: 10px;
+}
+
+.idle-preset-btn,
+.idle-preset-btn:focus,
+.idle-preset-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border: 2px solid #4C566A;
+    border-radius: 8px;
+    padding: 6px 18px;
+    font-size: 13px;
+    color: #8FBCBB;
+    margin-right: 8px;
+}
+
+.idle-preset-btn:last-child {
+    margin-right: 0;
+}
+
+.idle-preset-btn:hover {
+    background: rgba(136, 192, 208, 0.12);
+    border-color: #88C0D0;
+    color: #ECEFF4;
+}
+
+.idle-preset-active,
+.idle-preset-active:focus,
+.idle-preset-active:active {
+    border-color: #88C0D0;
+    background: rgba(136, 192, 208, 0.18);
+    color: #88C0D0;
+    font-weight: bold;
+}
+
+.idle-preset-desc {
+    font-size: 12px;
+    color: #81A1C1;
+}

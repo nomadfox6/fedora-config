@@ -1,0 +1,13 @@
+# wofi configuration
+show=drun
+width=400
+height=500
+prompt=Search...
+insensitive=true
+allow_markup=true
+no_actions=true
+halign=fill
+orientation=vertical
+content_halign=fill
+gtk_dark=true
+style=/home/nate/.config/wofi/style.css

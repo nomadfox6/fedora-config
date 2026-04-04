@@ -1,0 +1,7 @@
+[SddmGreeterTheme]
+Name=Nordic
+Description=Minimal Nord-themed SDDM greeter
+Author=custom
+Version=1.0
+License=MIT
+Type=sddm-theme

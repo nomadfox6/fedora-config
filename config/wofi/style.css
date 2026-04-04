@@ -1,0 +1,87 @@
+* {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 14px;
+}
+
+/* ── Outer window ─────────────────────────────────────────────────────────── */
+
+window {
+    background-color: rgba(46, 52, 64, 0.96);
+    border: 2px solid #88C0D0;
+    border-radius: 12px;
+}
+
+/* ── Search box ───────────────────────────────────────────────────────────── */
+
+#input {
+    background-color: #3B4252;
+    color: #D8DEE9;
+    border: 2px solid #4C566A;
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin: 12px 12px 8px 12px;
+    outline: none;
+    caret-color: #88C0D0;
+}
+
+#input:focus {
+    border-color: #88C0D0;
+}
+
+/* placeholder text */
+#input placeholder {
+    color: #4C566A;
+}
+
+/* ── Results list ─────────────────────────────────────────────────────────── */
+
+#scroll {
+    margin: 0 6px 10px 6px;
+}
+
+#inner-box {
+    background: transparent;
+}
+
+#outer-box {
+    background: transparent;
+    padding: 4px;
+}
+
+/* ── Individual entries ───────────────────────────────────────────────────── */
+
+#entry {
+    background: transparent;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 2px 0;
+    color: #D8DEE9;
+}
+
+#entry:selected {
+    background: rgba(136, 192, 208, 0.18);
+    border: 1px solid #88C0D0;
+    color: #ECEFF4;
+}
+
+#entry:hover {
+    background: rgba(136, 192, 208, 0.10);
+}
+
+/* ── App name + description text ─────────────────────────────────────────── */
+
+#text {
+    color: #D8DEE9;
+    font-size: 14px;
+}
+
+#entry:selected #text {
+    color: #ECEFF4;
+    font-weight: bold;
+}
+
+/* ── App icon ─────────────────────────────────────────────────────────────── */
+
+#img {
+    margin-right: 10px;
+}
