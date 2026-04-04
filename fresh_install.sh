@@ -81,6 +81,7 @@ dnf5 install -y \
     `# cursor-clip build dependencies` \
     rust \
     cargo \
+    dbus-devel \
     libadwaita-devel \
     `# AGS build dependencies` \
     meson ninja-build vala valadoc golang npm \
@@ -98,6 +99,7 @@ USER_HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
 
 echo "==> Cloning and building Astal..."
 git clone https://github.com/aylur/astal.git "$USER_HOME/astal"
+chown -R "$SUDO_USER:$SUDO_USER" "$USER_HOME/astal"
 
 cd "$USER_HOME/astal/lib/astal/io"
 meson setup build && meson install -C build
@@ -114,6 +116,7 @@ meson setup build && meson install -C build
 # ── AGS ───────────────────────────────────────
 echo "==> Cloning and building AGS..."
 git clone https://github.com/aylur/ags.git "$USER_HOME/ags"
+chown -R "$SUDO_USER:$SUDO_USER" "$USER_HOME/ags"
 
 cd "$USER_HOME/ags"
 sudo -u "$SUDO_USER" npm install
@@ -121,10 +124,10 @@ meson setup build && meson install -C build
 
 # ── Flatpak ───────────────────────────────────
 echo "==> Adding Flathub remote..."
-sudo -u "$SUDO_USER" flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
 echo "==> Installing Flatpak apps..."
-sudo -u "$SUDO_USER" flatpak install -y flathub be.alexandervanhee.gradia
+flatpak install -y flathub be.alexandervanhee.gradia
 
 # ── cursor-clip (clipboard manager) ──────────
 echo "==> Building cursor-clip..."
