@@ -113,6 +113,9 @@ meson setup build && meson install -C build
 cd "$USER_HOME/astal/lib/hyprland"
 meson setup build && meson install -C build
 
+cd "$USER_HOME/astal/lib/battery"
+meson setup build && meson install -C build
+
 # ── AGS ───────────────────────────────────────
 echo "==> Cloning and building AGS..."
 git clone https://github.com/aylur/ags.git "$USER_HOME/ags"
