@@ -31,7 +31,7 @@ Run these in order on a minimal Fedora 43 install.
 
 **1. Clone this repo**
 ```bash
-git clone git@gitea.internal-fish.com:nate/fedora-config.git ~/fedora-config
+git clone git@gitea.internal-fish.com:nomadfox6/fedora-config.git ~/fedora-config
 ```
 
 **2. Run the install script as root**
