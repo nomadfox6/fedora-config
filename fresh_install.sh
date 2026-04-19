@@ -53,6 +53,8 @@ dnf5 install -y \
     file-roller \
     `# Bluetooth` \
     blueman \
+    `# Calculator` \
+    gnome-calculator \
     `# Sync` \
     seafile-client \
     syncthing \
@@ -186,6 +188,14 @@ systemctl enable cups
 
 # ── User directories ─────────────────────────
 sudo -u "$SUDO_USER" xdg-user-dirs-update
+
+# ── SDDM theme ───────────────────────────────
+echo "==> Installing SDDM Nordic theme..."
+mkdir -p /usr/share/sddm/themes/nordic
+cp "$SCRIPT_DIR/sddm-nordic/Main.qml"         /usr/share/sddm/themes/nordic/
+cp "$SCRIPT_DIR/sddm-nordic/metadata.desktop" /usr/share/sddm/themes/nordic/
+mkdir -p /etc/sddm.conf.d
+cp "$SCRIPT_DIR/sddm-nordic/10-nordic.conf"   /etc/sddm.conf.d/
 
 # ── Symlink configs from repo ─────────────────
 echo "==> Linking config files via install.sh..."

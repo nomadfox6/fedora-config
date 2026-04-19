@@ -24,7 +24,8 @@ echo "==> Installing DNF packages..."
 dnf5 install -y \
     code \
     vlc \
-    steam
+    steam \
+    virt-manager
 
 # ── Flatpak apps ──────────────────────────────
 echo "==> Installing Flatpak apps..."

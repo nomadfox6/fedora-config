@@ -58,17 +58,6 @@ if [ ! -e "$CONFIG/hypr/monitors.conf" ]; then
     green "  created  $CONFIG/hypr/monitors.conf (empty)"
 fi
 
-# ── SDDM theme (requires sudo) ────────────────────────────────────────────────
-
-echo ""
-echo "==> Installing SDDM Nordic theme (requires sudo)..."
-sudo mkdir -p /usr/share/sddm/themes/nordic
-sudo cp "$REPO/sddm-nordic/Main.qml"          /usr/share/sddm/themes/nordic/
-sudo cp "$REPO/sddm-nordic/metadata.desktop"  /usr/share/sddm/themes/nordic/
-sudo mkdir -p /etc/sddm.conf.d
-sudo cp "$REPO/sddm-nordic/10-nordic.conf"    /etc/sddm.conf.d/
-green "  SDDM theme installed"
-
 # ── Done ─────────────────────────────────────────────────────────────────────
 
 echo ""

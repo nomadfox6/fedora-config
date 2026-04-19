@@ -306,18 +306,31 @@ function notify(summary: string, body: string, value: number, tag: string) {
 
 // ── System sliders (volume / brightness / battery) ───────────────────────────
 
-function SliderRow({ icon, value, onDec, onInc, rightLabel }: {
+function SliderRow({ icon, value, onDec, onInc, rightLabel, onIconClick, iconPoll }: {
     icon: string
     value: () => number          // 0–1
     onDec?: () => void
     onInc?: () => void
     rightLabel?: () => string    // if set, replaces +/- with a text label
+    onIconClick?: () => void
+    iconPoll?: () => string      // if set, polls for dynamic icon updates
 }) {
     let bar: Gtk.ProgressBar
 
     return (
         <box cssClasses={["slider-row"]}>
-            <label cssClasses={["slider-icon"]} label={icon} />
+            {onIconClick
+                ? <button cssClasses={["slider-icon-btn"]} onClicked={() => onIconClick()}>
+                    <label cssClasses={["slider-icon"]} label={icon} $={(self) => {
+                        if (iconPoll) {
+                            const poll = createPoll(icon, 500, iconPoll)
+                            poll.subscribe(() => { self.label = poll.get() })
+                            setTimeout(() => { self.label = iconPoll() }, 50)
+                        }
+                    }} />
+                  </button>
+                : <label cssClasses={["slider-icon"]} label={icon} />
+            }
             <box cssClasses={["slider-track"]} hexpand={true} valign={Gtk.Align.CENTER}
                 $={(self) => {
                     bar = new Gtk.ProgressBar({ cssClasses: ["slider-bar"], hexpand: true })
@@ -363,6 +376,17 @@ function SystemSliders() {
             notify("Volume", `${pct}%`, pct, "osd-volume")
         }, 80)
     }
+    const isMuted = () => {
+        const out = runSync(["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"])
+        return out.includes("MUTED")
+    }
+    const toggleMute = () => {
+        Gio.Subprocess.new(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"], Gio.SubprocessFlags.NONE)
+        setTimeout(() => {
+            notify("Volume", isMuted() ? "Muted" : "Unmuted", 0, "osd-volume")
+        }, 80)
+    }
+    const volumeIcon = () => isMuted() ? "\uF6A9" : "\uF028"
 
     // ── Brightness (via brightnessctl) ──
     const getBrightness = () => {
@@ -399,6 +423,8 @@ function SystemSliders() {
                 value={getVolume}
                 onDec={() => adjustVolume(-0.05)}
                 onInc={() => adjustVolume(0.05)}
+                onIconClick={toggleMute}
+                iconPoll={volumeIcon}
             />
             <SliderRow
                 icon={"\uF185"}
