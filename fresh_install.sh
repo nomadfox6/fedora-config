@@ -51,6 +51,7 @@ dnf5 install -y \
     gvfs \
     gvfs-mtp \
     file-roller \
+    loupe \
     `# Bluetooth` \
     blueman \
     `# Calculator` \
