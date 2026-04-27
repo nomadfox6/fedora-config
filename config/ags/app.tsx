@@ -151,7 +151,7 @@ function Tray() {
 
 // ── Workspace + Window List (below tray, right side) ─────────────────────────
 
-function WorkspaceInfo({ hide, showSwitcher }: { hide: () => void, showSwitcher: () => void }) {
+function WorkspaceInfo({ hide }: { hide: () => void }) {
     const hypr = AstalHyprland.get_default()
 
     const focusedWs = createBinding(hypr, "focused-workspace")
@@ -176,7 +176,7 @@ function WorkspaceInfo({ hide, showSwitcher }: { hide: () => void, showSwitcher:
         <button
             cssClasses={["workspace-info-btn"]}
             halign={Gtk.Align.END}
-            onClicked={() => { hide(); showSwitcher() }}
+            onClicked={() => { hide() }}
         >
             <box cssClasses={["workspace-info"]} orientation={Gtk.Orientation.VERTICAL} halign={Gtk.Align.END}>
                 <label cssClasses={["ws-name"]} label={wsName} halign={Gtk.Align.END} />
@@ -551,12 +551,12 @@ function WorkspaceSwitcher({ hide }: { hide: () => void }) {
 
 // ── Right column: Tray, workspace switcher, window list, then control/power ───
 
-function RightColumn({ hide, showSwitcher }: { hide: () => void, showSwitcher: () => void }) {
+function RightColumn({ hide }: { hide: () => void }) {
     return (
         <box cssClasses={["right-col"]} orientation={Gtk.Orientation.VERTICAL} halign={Gtk.Align.END}>
             <Tray />
             <WorkspaceSwitcher hide={hide} />
-            <WorkspaceInfo hide={hide} showSwitcher={showSwitcher} />
+            <WorkspaceInfo hide={hide} />
             <box vexpand={true} />
             <SystemSliders />
             <ControlButtons />
@@ -566,97 +566,6 @@ function RightColumn({ hide, showSwitcher }: { hide: () => void, showSwitcher: (
 }
 
 // ── Workspace Switcher Panel ──────────────────────────────────────────────────
-
-function WorkspaceSwitcherPanel() {
-    let win: Astal.Window
-    let content: Gtk.Box
-    const hypr = AstalHyprland.get_default()
-
-    const hide = () => { win.visible = false }
-
-    const workspaces = createBinding(hypr, "workspaces").as(
-        (ws: AstalHyprland.Workspace[]) => [...ws].sort((a, b) => a.id - b.id)
-    )
-    const allClients = createBinding(hypr, "clients")
-
-    return (
-        <window
-            $={(self) => (win = self)}
-            name="ws-switcher-panel"
-            namespace="ws-switcher-panel"
-            application={app}
-            visible={false}
-            exclusivity={Astal.Exclusivity.IGNORE}
-            layer={Astal.Layer.OVERLAY}
-            keymode={Astal.Keymode.ON_DEMAND}
-            anchor={Astal.WindowAnchor.TOP | Astal.WindowAnchor.BOTTOM | Astal.WindowAnchor.LEFT | Astal.WindowAnchor.RIGHT}
-        >
-            <Gtk.EventControllerKey
-                onKeyPressed={(_e, keyval) => {
-                    if (keyval === Gdk.KEY_Escape) hide()
-                }}
-            />
-            <Gtk.GestureClick
-                onPressed={(_e, _n, x, y) => {
-                    const [, rect] = content.compute_bounds(win)
-                    const point = new Graphene.Point({ x, y })
-                    if (!rect.contains_point(point)) hide()
-                }}
-            />
-            <box
-                $={(self) => (content = self)}
-                cssClasses={["switcher-panel"]}
-                orientation={Gtk.Orientation.VERTICAL}
-                halign={Gtk.Align.CENTER}
-                valign={Gtk.Align.CENTER}
-            >
-                <label cssClasses={["switcher-title"]} label="Switch Desktop" halign={Gtk.Align.START} />
-                <For each={workspaces}>
-                    {(ws: AstalHyprland.Workspace) => {
-                        // snapshot window titles at render time; allClients binding
-                        // ensures re-render when windows change
-                        const titles = createComputed(
-                            [allClients],
-                            (_: AstalHyprland.Client[]) =>
-                                ws.get_clients()
-                                    .map((c) => c.title)
-                                    .filter((t) => t && t.length > 0)
-                        )
-
-                        return (
-                            <button
-                                cssClasses={["switcher-ws-btn"]}
-                                onClicked={() => {
-                                    hypr.dispatch("workspace", ws.id.toString())
-                                    hide()
-                                }}
-                            >
-                                <box orientation={Gtk.Orientation.VERTICAL} halign={Gtk.Align.START}>
-                                    <label
-                                        cssClasses={["switcher-ws-name"]}
-                                        label={`Desktop ${ws.id}`}
-                                        halign={Gtk.Align.START}
-                                    />
-                                    <For each={titles}>
-                                        {(title: string) => (
-                                            <label
-                                                cssClasses={["switcher-window-title"]}
-                                                label={title}
-                                                halign={Gtk.Align.START}
-                                                ellipsize={3}
-                                                maxWidthChars={48}
-                                            />
-                                        )}
-                                    </For>
-                                </box>
-                            </button>
-                        )
-                    }}
-                </For>
-            </box>
-        </window>
-    )
-}
 
 // ── Idle Preset ───────────────────────────────────────────────────────────────
 
@@ -860,7 +769,6 @@ function Panel() {
     let content: Gtk.Box
 
     const hide = () => { win.visible = false }
-    const showSwitcher = () => { app.get_window("ws-switcher-panel")!.visible = true }
     const showSettings = () => { app.get_window("settings-panel")!.visible = true }
 
     return (
@@ -896,7 +804,241 @@ function Panel() {
                 valign={Gtk.Align.CENTER}
             >
                 <Clock hide={hide} showSettings={showSettings} />
-                <RightColumn hide={hide} showSwitcher={showSwitcher} />
+                <RightColumn hide={hide} />
+            </box>
+        </window>
+    )
+}
+
+// ── Workspace Overview Panel ─────────────────────────────────────────────────
+
+function WorkspaceCard({ ws, focusedWs, hide }: {
+    ws: AstalHyprland.Workspace,
+    focusedWs: AstalHyprland.Workspace | null,
+    hide: () => void,
+}) {
+    const hypr = AstalHyprland.get_default()
+    const wsId = ws.id
+
+    // Build initial client list
+    const getClients = () => ws.get_clients()
+        .map(c => c.title)
+        .filter(t => t && t.length > 0)
+
+    const isActive = focusedWs && focusedWs.id === wsId
+
+    let picture: Gtk.Picture
+    let windowList: Gtk.Box
+
+    const refreshThumb = () => {
+        const path = `/tmp/ws-overview-${wsId}.png`
+        const file = Gio.File.new_for_path(path)
+        if (file.query_exists(null)) {
+            const tex = Gdk.Texture.new_from_file(file)
+            picture.paintable = tex
+        }
+    }
+
+    const refreshWindows = () => {
+        // Remove all children
+        let child = windowList.get_first_child()
+        while (child) {
+            const next = child.get_next_sibling()
+            windowList.remove(child)
+            child = next
+        }
+        // Re-add
+        for (const title of getClients()) {
+            const lbl = new Gtk.Label({
+                cssClasses: ["ws-card-window-title"],
+                label: title,
+                halign: Gtk.Align.START,
+                ellipsize: 3,
+                maxWidthChars: 24,
+            })
+            windowList.append(lbl)
+        }
+    }
+
+    return (
+        <button
+            cssClasses={isActive ? ["ws-card", "ws-card-active"] : ["ws-card"]}
+            onClicked={() => {
+                hypr.dispatch("workspace", wsId.toString())
+                hide()
+            }}
+            $={(self) => {
+                // Keep active class in sync
+                const upd = () => {
+                    const fws = hypr.focusedWorkspace
+                    self.cssClasses = (fws && fws.id === wsId)
+                        ? ["ws-card", "ws-card-active"]
+                        : ["ws-card"]
+                }
+                hypr.connect("notify::focused-workspace", upd)
+            }}
+        >
+            <box orientation={Gtk.Orientation.VERTICAL} cssClasses={["ws-card-inner"]}>
+                <label
+                    cssClasses={["ws-card-title"]}
+                    label={`Desktop ${wsId}`}
+                    halign={Gtk.Align.CENTER}
+                />
+                <Gtk.Picture
+                    cssClasses={["ws-thumb"]}
+                    contentFit={Gtk.ContentFit.FILL}
+                    widthRequest={220}
+                    heightRequest={138}
+                    $={(self) => {
+                        picture = self
+                        refreshThumb()
+                    }}
+                />
+                <box
+                    orientation={Gtk.Orientation.VERTICAL}
+                    cssClasses={["ws-card-windows"]}
+                    $={(self) => {
+                        windowList = self
+                        refreshWindows()
+                    }}
+                />
+            </box>
+        </button>
+    )
+}
+
+function WorkspaceOverview({ hide, refreshSignal }: {
+    hide: () => void,
+    refreshSignal: { subscribe: (cb: () => void) => void },
+}) {
+    const hypr = AstalHyprland.get_default()
+
+    const getPopulatedWs = () =>
+        [...hypr.workspaces]
+            .filter(ws => ws.windows > 0)
+            .sort((a, b) => a.id - b.id)
+
+    let grid: Gtk.Box
+
+    const rebuild = () => {
+        if (!grid) return
+        // Clear
+        let child = grid.get_first_child()
+        while (child) {
+            const next = child.get_next_sibling()
+            grid.remove(child)
+            child = next
+        }
+
+        const wsList = getPopulatedWs()
+        const focusedWs = hypr.focusedWorkspace
+        const rows: AstalHyprland.Workspace[][] = []
+        for (let i = 0; i < wsList.length; i += 5) {
+            rows.push(wsList.slice(i, i + 5))
+        }
+
+        for (const row of rows) {
+            const rowBox = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                cssClasses: ["ws-overview-row"],
+                spacing: 12,
+            })
+            for (const ws of row) {
+                const card = WorkspaceCard({ ws, focusedWs, hide }) as Gtk.Widget
+                rowBox.append(card)
+            }
+            grid.append(rowBox)
+        }
+    }
+
+    refreshSignal.subscribe(rebuild)
+    hypr.connect("notify::workspaces", rebuild)
+    hypr.connect("notify::clients", rebuild)
+
+    return (
+        <box
+            orientation={Gtk.Orientation.VERTICAL}
+            cssClasses={["ws-overview-grid"]}
+            $={(self) => {
+                grid = self
+                rebuild()
+            }}
+        />
+    )
+}
+
+function WorkspaceOverviewPanel() {
+    let win: Astal.Window
+    let content: Gtk.Box
+
+    const hide = () => { win.visible = false }
+
+    // Simple signal object for triggering refresh after thumbnails are ready
+    const refreshListeners: (() => void)[] = []
+    const refreshSignal = {
+        subscribe: (cb: () => void) => { refreshListeners.push(cb) },
+    }
+    const fireRefresh = () => refreshListeners.forEach(cb => cb())
+
+    const captureAndShow = () => {
+        // Run thumbnail capture in background, then refresh when done
+        const proc = Gio.Subprocess.new(
+            ["bash", `${GLib.get_home_dir()}/.config/hypr/ws-thumbs.sh`],
+            Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE,
+        )
+        proc.wait_async(null, () => {
+            fireRefresh()
+        })
+    }
+
+    return (
+        <window
+            $={(self) => {
+                win = self
+                // Capture thumbnails every time the panel is shown
+                self.connect("notify::visible", () => {
+                    if (self.visible) captureAndShow()
+                })
+            }}
+            name="ws-overview-panel"
+            namespace="ws-overview-panel"
+            application={app}
+            visible={false}
+            exclusivity={Astal.Exclusivity.IGNORE}
+            layer={Astal.Layer.OVERLAY}
+            keymode={Astal.Keymode.ON_DEMAND}
+            anchor={
+                Astal.WindowAnchor.TOP |
+                Astal.WindowAnchor.BOTTOM |
+                Astal.WindowAnchor.LEFT |
+                Astal.WindowAnchor.RIGHT
+            }
+        >
+            <Gtk.EventControllerKey
+                onKeyPressed={(_e, keyval) => {
+                    if (keyval === Gdk.KEY_Escape) hide()
+                }}
+            />
+            <Gtk.GestureClick
+                onPressed={(_e, _n, x, y) => {
+                    const [, rect] = content.compute_bounds(win)
+                    const point = new Graphene.Point({ x, y })
+                    if (!rect.contains_point(point)) hide()
+                }}
+            />
+            <box
+                $={(self) => (content = self)}
+                cssClasses={["ws-overview-panel"]}
+                orientation={Gtk.Orientation.VERTICAL}
+                halign={Gtk.Align.CENTER}
+                valign={Gtk.Align.CENTER}
+            >
+                <label
+                    cssClasses={["ws-overview-title"]}
+                    label="Workspaces"
+                    halign={Gtk.Align.START}
+                />
+                <WorkspaceOverview hide={hide} refreshSignal={refreshSignal} />
             </box>
         </window>
     )
@@ -906,7 +1048,7 @@ app.start({
     css: `${GLib.get_home_dir()}/.config/ags/style.css`,
     main() {
         Panel()
-        WorkspaceSwitcherPanel()
         SettingsPanel()
+        WorkspaceOverviewPanel()
     },
 })

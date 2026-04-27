@@ -429,61 +429,6 @@ window {
     border-color: #88C0D0;
 }
 
-/* ── Workspace Switcher Panel ─────────────────────────────────────────────── */
-
-.switcher-panel {
-    background-color: rgba(46, 52, 64, 0.95);
-    border: 2px solid #88C0D0;
-    border-radius: 12px;
-    padding: 28px 36px;
-    min-width: 420px;
-}
-
-.switcher-title {
-    font-size: 13px;
-    font-weight: bold;
-    color: #4C566A;
-    margin-bottom: 16px;
-    letter-spacing: 1px;
-}
-
-.switcher-ws-btn,
-.switcher-ws-btn:focus,
-.switcher-ws-btn:active {
-    background: transparent;
-    box-shadow: none;
-    border: 1px solid #4C566A;
-    border-radius: 8px;
-    padding: 10px 16px;
-    margin-bottom: 8px;
-}
-
-.switcher-ws-btn:last-child {
-    margin-bottom: 0;
-}
-
-.switcher-ws-btn:hover {
-    background: rgba(136, 192, 208, 0.12);
-    border-color: #88C0D0;
-}
-
-.switcher-ws-name {
-    font-size: 13px;
-    font-weight: bold;
-    color: #88C0D0;
-    margin-bottom: 4px;
-}
-
-.switcher-window-title {
-    font-size: 12px;
-    color: #8FBCBB;
-    margin-bottom: 2px;
-}
-
-.switcher-window-title:last-child {
-    margin-bottom: 0;
-}
-
 /* ── Settings Panel ───────────────────────────────────────────────────────── */
 
 .settings-panel {
@@ -553,4 +498,81 @@ window {
 .idle-preset-desc {
     font-size: 12px;
     color: #81A1C1;
+}
+
+/* ── Workspace Overview Panel ────────────────────────────────────────────── */
+
+.ws-overview-panel {
+    background-color: rgba(46, 52, 64, 0.95);
+    border: 2px solid #88C0D0;
+    border-radius: 12px;
+    padding: 28px 32px;
+    min-width: 320px;
+}
+
+.ws-overview-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ECEFF4;
+    margin-bottom: 16px;
+}
+
+.ws-overview-grid {
+    /* vertical stack of rows */
+}
+
+.ws-overview-row {
+    /* horizontal row of up to 5 cards */
+    margin-bottom: 12px;
+}
+
+.ws-card {
+    background-color: rgba(59, 66, 82, 0.80);
+    border: 2px solid #4C566A;
+    border-radius: 8px;
+    padding: 8px;
+    min-width: 240px;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.ws-card:hover {
+    background-color: rgba(67, 76, 94, 0.90);
+    border-color: #81A1C1;
+}
+
+.ws-card-active {
+    border-color: #88C0D0;
+    background-color: rgba(136, 192, 208, 0.12);
+}
+
+.ws-card-active:hover {
+    border-color: #8FBCBB;
+    background-color: rgba(136, 192, 208, 0.18);
+}
+
+.ws-card-inner {
+    /* vertical stack: title, thumb, window list */
+}
+
+.ws-card-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #88C0D0;
+    margin-bottom: 6px;
+}
+
+.ws-thumb {
+    border-radius: 4px;
+    margin-bottom: 8px;
+    /* fixed size set in TSX: 220x138 */
+}
+
+.ws-card-windows {
+    /* vertical list of window titles */
+}
+
+.ws-card-window-title {
+    font-size: 11px;
+    color: #81A1C1;
+    margin-top: 2px;
 }

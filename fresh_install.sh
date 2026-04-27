@@ -8,6 +8,7 @@ dnf5 copr enable solopasha/hyprland -y
 dnf5 install -y \
     `# Hyprland & Wayland core` \
     hyprland \
+    hyprland-devel \
     qt5-qtwayland \
     qt6-qtwayland \
     `# XDG portals` \
@@ -86,13 +87,17 @@ dnf5 install -y \
     cargo \
     dbus-devel \
     libadwaita-devel \
-    `# AGS build dependencies` \
+    `# AGS / hyprview build dependencies` \
     meson ninja-build vala valadoc golang npm \
+    cmake gcc-c++ \
     gjs gjs-devel \
     gobject-introspection-devel \
     gtk4-devel gtk4-layer-shell-devel \
     glib2-devel json-glib-devel \
     wayland-protocols-devel \
+    wayland-devel \
+    wayland-scanner \
+    ImageMagick \
     appmenu-glib-translator appmenu-glib-translator-devel \
     `# Flatpak` \
     flatpak
@@ -141,6 +146,10 @@ sudo -u "$SUDO_USER" git clone https://github.com/Sirulex/cursor-clip "$USER_HOM
 sudo -u "$SUDO_USER" bash -c "cd '$USER_HOME/cursor-clip' && cargo build --release"
 sudo -u "$SUDO_USER" mkdir -p "$USER_HOME/.local/bin"
 sudo -u "$SUDO_USER" cp "$USER_HOME/cursor-clip/target/release/cursor-clip" "$USER_HOME/.local/bin/"
+
+# ── ws-capture (workspace thumbnail capture binary) ──
+echo "==> Building ws_capture..."
+sudo -u "$SUDO_USER" bash "$USER_HOME/.config/hypr/ws-capture/build.sh"
 
 # ── Remove unwanted COPR packages ────────────
 echo "==> Removing unwanted packages..."
