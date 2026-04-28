@@ -812,6 +812,9 @@ function Panel() {
 
 // ── Workspace Overview Panel ─────────────────────────────────────────────────
 
+const MINIMAP_W = 220
+const MINIMAP_H = 138
+
 function WorkspaceCard({ ws, focusedWs, hide }: {
     ws: AstalHyprland.Workspace,
     focusedWs: AstalHyprland.Workspace | null,
@@ -819,44 +822,71 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
 }) {
     const hypr = AstalHyprland.get_default()
     const wsId = ws.id
-
-    // Build initial client list
-    const getClients = () => ws.get_clients()
-        .map(c => c.title)
-        .filter(t => t && t.length > 0)
-
     const isActive = focusedWs && focusedWs.id === wsId
 
-    let picture: Gtk.Picture
-    let windowList: Gtk.Box
-
-    const refreshThumb = () => {
-        const path = `/tmp/ws-overview-${wsId}.png`
-        const file = Gio.File.new_for_path(path)
-        if (file.query_exists(null)) {
-            const tex = Gdk.Texture.new_from_file(file)
-            picture.paintable = tex
-        }
+    // Get monitor dimensions for scaling — use the monitor this workspace is on
+    const getMonitorSize = (): [number, number] => {
+        const monName = ws.monitor
+        const mon = hypr.monitors.find((m: AstalHyprland.Monitor) => m.name === monName)
+        return mon ? [mon.width, mon.height] : [1280, 800]
     }
 
-    const refreshWindows = () => {
-        // Remove all children
-        let child = windowList.get_first_child()
+    let minimap: Gtk.Fixed
+
+    const refreshMinimap = () => {
+        if (!minimap) return
+
+        // Clear existing children
+        let child = minimap.get_first_child()
         while (child) {
             const next = child.get_next_sibling()
-            windowList.remove(child)
+            minimap.remove(child)
             child = next
         }
-        // Re-add
-        for (const title of getClients()) {
-            const lbl = new Gtk.Label({
-                cssClasses: ["ws-card-window-title"],
-                label: title,
+
+        const [monW, monH] = getMonitorSize()
+        const scaleX = MINIMAP_W / monW
+        const scaleY = MINIMAP_H / monH
+
+        const clients = ws.get_clients()
+        const focusedAddr = hypr.focusedClient?.address
+
+        for (const client of clients) {
+            const x = Math.round(client.x * scaleX)
+            const y = Math.round(client.y * scaleY)
+            const w = Math.max(4, Math.round(client.width * scaleX))
+            const h = Math.max(4, Math.round(client.height * scaleY))
+
+            const isFocused = isActive && client.address === focusedAddr
+
+            // Truncate title to fit width (~1 char per 6px at 8px font)
+            const maxChars = Math.max(4, Math.floor(w / 6))
+            const title = client.title.length > maxChars
+                ? client.title.substring(0, maxChars - 1) + "…"
+                : client.title
+
+            const winBox = new Gtk.Box({
+                cssClasses: isFocused
+                    ? ["ws-minimap-window", "ws-minimap-window-active"]
+                    : ["ws-minimap-window"],
+                widthRequest: w,
+                heightRequest: h,
                 halign: Gtk.Align.START,
-                ellipsize: 3,
-                maxWidthChars: 24,
+                valign: Gtk.Align.START,
+                overflow: Gtk.Overflow.HIDDEN,
             })
-            windowList.append(lbl)
+
+            const lbl = new Gtk.Label({
+                cssClasses: ["ws-minimap-window-title"],
+                label: title,
+                halign: Gtk.Align.CENTER,
+                valign: Gtk.Align.CENTER,
+                ellipsize: 3,
+                maxWidthChars: maxChars,
+                hexpand: true,
+            })
+            winBox.append(lbl)
+            minimap.put(winBox, x, y)
         }
     }
 
@@ -868,14 +898,15 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
                 hide()
             }}
             $={(self) => {
-                // Keep active class in sync
-                const upd = () => {
+                const updActive = () => {
                     const fws = hypr.focusedWorkspace
                     self.cssClasses = (fws && fws.id === wsId)
                         ? ["ws-card", "ws-card-active"]
                         : ["ws-card"]
                 }
-                hypr.connect("notify::focused-workspace", upd)
+                hypr.connect("notify::focused-workspace", updActive)
+                hypr.connect("notify::clients", refreshMinimap)
+                hypr.connect("notify::focused-client", refreshMinimap)
             }}
         >
             <box orientation={Gtk.Orientation.VERTICAL} cssClasses={["ws-card-inner"]}>
@@ -884,22 +915,13 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
                     label={`Desktop ${wsId}`}
                     halign={Gtk.Align.CENTER}
                 />
-                <Gtk.Picture
-                    cssClasses={["ws-thumb"]}
-                    contentFit={Gtk.ContentFit.FILL}
-                    widthRequest={220}
-                    heightRequest={138}
+                <Gtk.Fixed
+                    cssClasses={["ws-minimap"]}
+                    widthRequest={MINIMAP_W}
+                    heightRequest={MINIMAP_H}
                     $={(self) => {
-                        picture = self
-                        refreshThumb()
-                    }}
-                />
-                <box
-                    orientation={Gtk.Orientation.VERTICAL}
-                    cssClasses={["ws-card-windows"]}
-                    $={(self) => {
-                        windowList = self
-                        refreshWindows()
+                        minimap = self
+                        refreshMinimap()
                     }}
                 />
             </box>
@@ -915,7 +937,7 @@ function WorkspaceOverview({ hide, refreshSignal }: {
 
     const getPopulatedWs = () =>
         [...hypr.workspaces]
-            .filter(ws => ws.windows > 0)
+            .filter(ws => ws.get_clients().length > 0)
             .sort((a, b) => a.id - b.id)
 
     let grid: Gtk.Box
@@ -981,14 +1003,7 @@ function WorkspaceOverviewPanel() {
     const fireRefresh = () => refreshListeners.forEach(cb => cb())
 
     const captureAndShow = () => {
-        // Run thumbnail capture in background, then refresh when done
-        const proc = Gio.Subprocess.new(
-            ["bash", `${GLib.get_home_dir()}/.config/hypr/ws-thumbs.sh`],
-            Gio.SubprocessFlags.STDOUT_SILENCE | Gio.SubprocessFlags.STDERR_SILENCE,
-        )
-        proc.wait_async(null, () => {
-            fireRefresh()
-        })
+        fireRefresh()
     }
 
     return (
@@ -1036,7 +1051,7 @@ function WorkspaceOverviewPanel() {
                 <label
                     cssClasses={["ws-overview-title"]}
                     label="Workspaces"
-                    halign={Gtk.Align.START}
+                    halign={Gtk.Align.CENTER}
                 />
                 <WorkspaceOverview hide={hide} refreshSignal={refreshSignal} />
             </box>
