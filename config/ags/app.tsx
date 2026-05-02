@@ -475,10 +475,6 @@ function PowerButtons() {
         <box cssClasses={["power-area"]} orientation={Gtk.Orientation.VERTICAL} halign={Gtk.Align.END}>
             {/* Normal state: four power buttons */}
             <box $={(self) => (buttonsBox = self)} cssClasses={["power-buttons"]} halign={Gtk.Align.END}>
-                <button cssClasses={["power-btn"]} tooltipText="Lock screen"
-                    onClicked={() => Gio.Subprocess.new(["hyprlock"], Gio.SubprocessFlags.NONE)}>
-                    <label cssClasses={["power-icon"]} label={"\uF023"} />
-                </button>
                 <button cssClasses={["power-btn"]} tooltipText="Shut down"
                     onClicked={() => ask(() => run(["systemctl", "poweroff"]))}>
                     <label cssClasses={["power-icon"]} label={"\uF011"} />
@@ -490,6 +486,10 @@ function PowerButtons() {
                 <button cssClasses={["power-btn"]} tooltipText="Log out"
                     onClicked={() => ask(() => run(["hyprctl", "dispatch", "exit"]))}>
                     <label cssClasses={["power-icon"]} label={"\uF08B"} />
+                </button>
+                <button cssClasses={["power-btn"]} tooltipText="Lock screen"
+                    onClicked={() => Gio.Subprocess.new(["hyprlock"], Gio.SubprocessFlags.NONE)}>
+                    <label cssClasses={["power-icon"]} label={"\uF023"} />
                 </button>
             </box>
             {/* Confirmation state */}
