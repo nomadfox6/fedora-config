@@ -555,8 +555,6 @@ function RightColumn({ hide }: { hide: () => void }) {
     return (
         <box cssClasses={["right-col"]} orientation={Gtk.Orientation.VERTICAL} halign={Gtk.Align.END}>
             <Tray />
-            <WorkspaceSwitcher hide={hide} />
-            <WorkspaceInfo hide={hide} />
             <box vexpand={true} />
             <SystemSliders />
             <ControlButtons />
@@ -771,9 +769,20 @@ function Panel() {
     const hide = () => { win.visible = false }
     const showSettings = () => { app.get_window("settings-panel")!.visible = true }
 
+    const refreshListeners: (() => void)[] = []
+    const refreshSignal = {
+        subscribe: (cb: () => void) => { refreshListeners.push(cb) },
+    }
+    const fireRefresh = () => refreshListeners.forEach(cb => cb())
+
     return (
         <window
-            $={(self) => (win = self)}
+            $={(self) => {
+                win = self
+                self.connect("notify::visible", () => {
+                    if (self.visible) fireRefresh()
+                })
+            }}
             name="my-panel"
             namespace="my-panel"
             application={app}
@@ -799,12 +808,21 @@ function Panel() {
             <box
                 $={(self) => (content = self)}
                 cssClasses={["panel"]}
-                orientation={Gtk.Orientation.HORIZONTAL}
+                orientation={Gtk.Orientation.VERTICAL}
                 halign={Gtk.Align.CENTER}
                 valign={Gtk.Align.CENTER}
             >
-                <Clock hide={hide} showSettings={showSettings} />
-                <RightColumn hide={hide} />
+                <box orientation={Gtk.Orientation.HORIZONTAL} halign={Gtk.Align.CENTER}>
+                    <Clock hide={hide} showSettings={showSettings} />
+                    <RightColumn hide={hide} />
+                </box>
+                <Gtk.Separator cssClasses={["panel-separator"]} orientation={Gtk.Orientation.HORIZONTAL} />
+                <label
+                    cssClasses={["ws-overview-title"]}
+                    label="Workspaces"
+                    halign={Gtk.Align.CENTER}
+                />
+                <WorkspaceOverview hide={hide} refreshSignal={refreshSignal} />
             </box>
         </window>
     )
@@ -989,81 +1007,10 @@ function WorkspaceOverview({ hide, refreshSignal }: {
     )
 }
 
-function WorkspaceOverviewPanel() {
-    let win: Astal.Window
-    let content: Gtk.Box
-
-    const hide = () => { win.visible = false }
-
-    // Simple signal object for triggering refresh after thumbnails are ready
-    const refreshListeners: (() => void)[] = []
-    const refreshSignal = {
-        subscribe: (cb: () => void) => { refreshListeners.push(cb) },
-    }
-    const fireRefresh = () => refreshListeners.forEach(cb => cb())
-
-    const captureAndShow = () => {
-        fireRefresh()
-    }
-
-    return (
-        <window
-            $={(self) => {
-                win = self
-                // Capture thumbnails every time the panel is shown
-                self.connect("notify::visible", () => {
-                    if (self.visible) captureAndShow()
-                })
-            }}
-            name="ws-overview-panel"
-            namespace="ws-overview-panel"
-            application={app}
-            visible={false}
-            exclusivity={Astal.Exclusivity.IGNORE}
-            layer={Astal.Layer.OVERLAY}
-            keymode={Astal.Keymode.ON_DEMAND}
-            anchor={
-                Astal.WindowAnchor.TOP |
-                Astal.WindowAnchor.BOTTOM |
-                Astal.WindowAnchor.LEFT |
-                Astal.WindowAnchor.RIGHT
-            }
-        >
-            <Gtk.EventControllerKey
-                onKeyPressed={(_e, keyval) => {
-                    if (keyval === Gdk.KEY_Escape) hide()
-                }}
-            />
-            <Gtk.GestureClick
-                onPressed={(_e, _n, x, y) => {
-                    const [, rect] = content.compute_bounds(win)
-                    const point = new Graphene.Point({ x, y })
-                    if (!rect.contains_point(point)) hide()
-                }}
-            />
-            <box
-                $={(self) => (content = self)}
-                cssClasses={["ws-overview-panel"]}
-                orientation={Gtk.Orientation.VERTICAL}
-                halign={Gtk.Align.CENTER}
-                valign={Gtk.Align.CENTER}
-            >
-                <label
-                    cssClasses={["ws-overview-title"]}
-                    label="Workspaces"
-                    halign={Gtk.Align.CENTER}
-                />
-                <WorkspaceOverview hide={hide} refreshSignal={refreshSignal} />
-            </box>
-        </window>
-    )
-}
-
 app.start({
     css: `${GLib.get_home_dir()}/.config/ags/style.css`,
     main() {
         Panel()
         SettingsPanel()
-        WorkspaceOverviewPanel()
     },
 })

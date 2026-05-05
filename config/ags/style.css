@@ -500,14 +500,13 @@ window {
     color: #81A1C1;
 }
 
-/* ── Workspace Overview Panel ────────────────────────────────────────────── */
+/* ── Workspace Overview (embedded in panel) ──────────────────────────────── */
 
-.ws-overview-panel {
-    background-color: rgba(46, 52, 64, 0.95);
-    border: 2px solid #88C0D0;
-    border-radius: 12px;
-    padding: 28px 32px;
-    min-width: 320px;
+.panel-separator {
+    background-color: #4C566A;
+    min-height: 1px;
+    margin-top: 16px;
+    margin-bottom: 16px;
 }
 
 .ws-overview-title {
