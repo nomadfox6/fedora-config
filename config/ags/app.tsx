@@ -842,13 +842,6 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
     const wsId = ws.id
     const isActive = focusedWs && focusedWs.id === wsId
 
-    // Get monitor dimensions for scaling — use the monitor this workspace is on
-    const getMonitorSize = (): [number, number] => {
-        const monName = ws.monitor
-        const mon = hypr.monitors.find((m: AstalHyprland.Monitor) => m.name === monName)
-        return mon ? [mon.width, mon.height] : [1280, 800]
-    }
-
     let minimap: Gtk.Fixed
 
     const refreshMinimap = () => {
@@ -862,7 +855,11 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
             child = next
         }
 
-        const [monW, monH] = getMonitorSize()
+        const monName = ws.monitor
+        const mon = hypr.monitors.find((m: AstalHyprland.Monitor) => m.name === monName)
+        const [monW, monH] = mon ? [mon.width, mon.height] : [1280, 800]
+        const monOffX = mon ? mon.x : 0
+        const monOffY = mon ? mon.y : 0
         const scaleX = MINIMAP_W / monW
         const scaleY = MINIMAP_H / monH
 
@@ -870,8 +867,8 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
         const focusedAddr = hypr.focusedClient?.address
 
         for (const client of clients) {
-            const x = Math.round(client.x * scaleX)
-            const y = Math.round(client.y * scaleY)
+            const x = Math.round((client.x - monOffX) * scaleX)
+            const y = Math.round((client.y - monOffY) * scaleY)
             const w = Math.max(4, Math.round(client.width * scaleX))
             const h = Math.max(4, Math.round(client.height * scaleY))
 
