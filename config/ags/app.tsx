@@ -833,6 +833,28 @@ function Panel() {
 const MINIMAP_W = 220
 const MINIMAP_H = 138
 
+// AstalHyprland does not reliably populate monitor x/y offsets, so we read
+// them directly from hyprctl and cache the result.
+type MonitorGeom = { x: number; y: number; width: number; height: number }
+const monitorGeomCache = new Map<string, MonitorGeom>()
+
+function refreshMonitorGeom() {
+    try {
+        const [, out] = GLib.spawn_command_line_sync("hyprctl monitors -j")
+        const monitors = JSON.parse(new TextDecoder().decode(out)) as Array<{
+            name: string; x: number; y: number; width: number; height: number
+        }>
+        for (const m of monitors) {
+            monitorGeomCache.set(m.name, { x: m.x, y: m.y, width: m.width, height: m.height })
+        }
+    } catch (_) {}
+}
+refreshMonitorGeom()
+
+function getMonitorGeom(name: string): MonitorGeom {
+    return monitorGeomCache.get(name) ?? { x: 0, y: 0, width: 1920, height: 1080 }
+}
+
 function WorkspaceCard({ ws, focusedWs, hide }: {
     ws: AstalHyprland.Workspace,
     focusedWs: AstalHyprland.Workspace | null,
@@ -846,6 +868,7 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
 
     const refreshMinimap = () => {
         if (!minimap) return
+        refreshMonitorGeom()
 
         // Clear existing children
         let child = minimap.get_first_child()
@@ -856,10 +879,10 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
         }
 
         const monName = ws.monitor
-        const mon = hypr.monitors.find((m: AstalHyprland.Monitor) => m.name === monName)
-        const [monW, monH] = mon ? [mon.width, mon.height] : [1280, 800]
-        const monOffX = mon ? mon.x : 0
-        const monOffY = mon ? mon.y : 0
+        const mon = getMonitorGeom(monName)
+        const [monW, monH] = [mon.width, mon.height]
+        const monOffX = mon.x
+        const monOffY = mon.y
         const scaleX = MINIMAP_W / monW
         const scaleY = MINIMAP_H / monH
 
