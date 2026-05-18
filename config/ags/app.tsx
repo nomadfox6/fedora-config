@@ -834,22 +834,31 @@ const MINIMAP_W = 220
 const MINIMAP_H = 138
 
 // AstalHyprland does not reliably populate monitor x/y offsets, so we read
-// them directly from hyprctl and cache the result.
+// them directly from hyprctl and cache the result. We do this async so we
+// never block the UI thread, and refresh only when monitors change.
 type MonitorGeom = { x: number; y: number; width: number; height: number }
 const monitorGeomCache = new Map<string, MonitorGeom>()
 
-function refreshMonitorGeom() {
+function refreshMonitorGeomAsync() {
     try {
-        const [, out] = GLib.spawn_command_line_sync("hyprctl monitors -j")
-        const monitors = JSON.parse(new TextDecoder().decode(out)) as Array<{
-            name: string; x: number; y: number; width: number; height: number
-        }>
-        for (const m of monitors) {
-            monitorGeomCache.set(m.name, { x: m.x, y: m.y, width: m.width, height: m.height })
-        }
+        const proc = Gio.Subprocess.new(
+            ["hyprctl", "monitors", "-j"],
+            Gio.SubprocessFlags.STDOUT_PIPE
+        )
+        proc.communicate_utf8_async(null, null, (_p, res) => {
+            try {
+                const [, out] = proc.communicate_utf8_finish(res)
+                const monitors = JSON.parse(out ?? "[]") as Array<{
+                    name: string; x: number; y: number; width: number; height: number
+                }>
+                for (const m of monitors) {
+                    monitorGeomCache.set(m.name, { x: m.x, y: m.y, width: m.width, height: m.height })
+                }
+            } catch (_) {}
+        })
     } catch (_) {}
 }
-refreshMonitorGeom()
+refreshMonitorGeomAsync()
 
 function getMonitorGeom(name: string): MonitorGeom {
     return monitorGeomCache.get(name) ?? { x: 0, y: 0, width: 1920, height: 1080 }
@@ -868,7 +877,6 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
 
     const refreshMinimap = () => {
         if (!minimap) return
-        refreshMonitorGeom()
 
         // Clear existing children
         let child = minimap.get_first_child()
@@ -1012,6 +1020,7 @@ function WorkspaceOverview({ hide, refreshSignal }: {
     }
 
     refreshSignal.subscribe(rebuild)
+    hypr.connect("notify::monitors", () => { refreshMonitorGeomAsync(); rebuild() })
     hypr.connect("notify::workspaces", rebuild)
     hypr.connect("notify::clients", rebuild)
 
