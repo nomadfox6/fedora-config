@@ -64,13 +64,12 @@
     frame_color = "#88C0D0"
     timeout = 8
 
+
 [urgency_critical]
     background = "#2E3440"
     foreground = "#BF616A"
     frame_color = "#BF616A"
     timeout = 0
-
-[osd]
     summary = "Volume"
     background = "#2E3440"
     foreground = "#D8DEE9"
