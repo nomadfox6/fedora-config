@@ -580,3 +580,10 @@ window {
     font-size: 8px;
     color: #D8DEE9;
 }
+
+/* ── Battery bar states ──────────────────────────────────────────────────── */
+
+.battery-charging progressbar trough progress { background-color: #88C0D0; }
+.battery-normal   progressbar trough progress { background-color: #D8DEE9; }
+.battery-low      progressbar trough progress { background-color: #EBCB8B; }
+.battery-critical progressbar trough progress { background-color: #BF616A; }

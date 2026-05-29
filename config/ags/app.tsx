@@ -306,7 +306,7 @@ function notify(summary: string, body: string, value: number, tag: string) {
 
 // ── System sliders (volume / brightness / battery) ───────────────────────────
 
-function SliderRow({ icon, value, onDec, onInc, rightLabel, onIconClick, iconPoll }: {
+function SliderRow({ icon, value, onDec, onInc, rightLabel, onIconClick, iconPoll, barClassPoll }: {
     icon: string
     value: () => number          // 0–1
     onDec?: () => void
@@ -314,6 +314,7 @@ function SliderRow({ icon, value, onDec, onInc, rightLabel, onIconClick, iconPol
     rightLabel?: () => string    // if set, replaces +/- with a text label
     onIconClick?: () => void
     iconPoll?: () => string      // if set, polls for dynamic icon updates
+    barClassPoll?: () => string  // if set, polls for dynamic bar CSS class
 }) {
     let bar: Gtk.ProgressBar
 
@@ -329,7 +330,13 @@ function SliderRow({ icon, value, onDec, onInc, rightLabel, onIconClick, iconPol
                         }
                     }} />
                   </button>
-                : <label cssClasses={["slider-icon"]} label={icon} />
+                : <label cssClasses={["slider-icon"]} label={icon} $={(self) => {
+                    if (iconPoll) {
+                        const poll = createPoll(icon, 500, iconPoll)
+                        poll.subscribe(() => { self.label = poll.get() })
+                        setTimeout(() => { self.label = iconPoll() }, 50)
+                    }
+                  }} />
             }
             <box cssClasses={["slider-track"]} hexpand={true} valign={Gtk.Align.CENTER}
                 $={(self) => {
@@ -338,6 +345,14 @@ function SliderRow({ icon, value, onDec, onInc, rightLabel, onIconClick, iconPol
                     const poll = createPoll(0, 500, value)
                     poll.subscribe(() => { bar.fraction = poll.get() })
                     setTimeout(() => { bar.fraction = value() }, 100)
+                    if (barClassPoll) {
+                        const classPoll = createPoll("", 500, barClassPoll)
+                        const applyClass = (cls: string) => {
+                            bar.cssClasses = ["slider-bar", cls].filter(Boolean)
+                        }
+                        classPoll.subscribe(() => applyClass(classPoll.get()))
+                        setTimeout(() => applyClass(barClassPoll()), 100)
+                    }
                     self.append(bar)
                 }}
             />
@@ -416,6 +431,30 @@ function SystemSliders() {
         } catch (_) { return "N/A" }
     }
 
+    const getBatteryIcon = () => {
+        try {
+            if (!battery) return "\uF244"
+            if (battery.charging) return "\uF0E7"
+            const pct = battery.percentage * 100
+            if (pct >= 75) return "\uF240"
+            if (pct >= 50) return "\uF241"
+            if (pct >= 25) return "\uF242"
+            if (pct >= 10) return "\uF243"
+            return "\uF244"
+        } catch (_) { return "\uF244" }
+    }
+
+    const getBatteryBarClass = () => {
+        try {
+            if (!battery) return "battery-normal"
+            if (battery.charging) return "battery-charging"
+            const pct = battery.percentage * 100
+            if (pct <= 10) return "battery-critical"
+            if (pct <= 20) return "battery-low"
+            return "battery-normal"
+        } catch (_) { return "battery-normal" }
+    }
+
     return (
         <box cssClasses={["system-sliders"]} orientation={Gtk.Orientation.VERTICAL}>
             <SliderRow
@@ -434,8 +473,10 @@ function SystemSliders() {
             />
             <SliderRow
                 icon={"\uF240"}
+                iconPoll={getBatteryIcon}
                 value={getBatteryPct}
                 rightLabel={getBatteryLabel}
+                barClassPoll={getBatteryBarClass}
             />
         </box>
     )
