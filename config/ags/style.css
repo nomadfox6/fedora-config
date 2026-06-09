@@ -17,7 +17,6 @@ window {
 
 /* Top row: clock on left, right column on right */
 .panel-top-row {
-    /* horizontal box - children sit side by side */
 }
 
 /* Left side */
@@ -102,6 +101,111 @@ window {
 /* Right column */
 .right-col {
     margin-left: 32px;
+}
+
+.notif-col {
+    margin-left: 32px;
+    min-width: 340px;
+}
+
+.notif-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ECEFF4;
+    margin-bottom: 8px;
+}
+
+.notif-scroll {
+    background: rgba(46, 52, 64, 0.92);
+    border: 1px solid #4C566A;
+    border-radius: 8px;
+}
+
+.notif-list {
+    padding: 8px;
+}
+
+.notif-row {
+    background: rgba(46, 52, 64, 0.45);
+    border: 1px solid #434C5E;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    padding: 0;
+}
+
+.notif-row:last-child {
+    margin-bottom: 0;
+}
+
+.notif-normal {
+    border-left: 2px solid #81A1C1;
+}
+
+.notif-low {
+    border-left: 2px solid #8FBCBB;
+}
+
+.notif-critical {
+    border-left: 2px solid #BF616A;
+}
+
+.notif-item-btn,
+.notif-item-btn:focus,
+.notif-item-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    border-radius: 6px 0 0 6px;
+    padding: 8px 10px;
+}
+
+.notif-item-btn:hover {
+    background: rgba(136, 192, 208, 0.10);
+}
+
+.notif-text {
+}
+
+.notif-summary {
+    font-size: 12px;
+    font-weight: bold;
+    color: #D8DEE9;
+}
+
+.notif-body {
+    font-size: 11px;
+    color: #81A1C1;
+    margin-top: 2px;
+}
+
+.notif-empty {
+    font-size: 12px;
+    color: #4C566A;
+    margin: 6px 4px;
+}
+
+.notif-rm-btn,
+.notif-rm-btn:focus,
+.notif-rm-btn:active {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    border-radius: 0 6px 6px 0;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0;
+    margin: 0 4px 0 0;
+}
+
+.notif-rm-btn:hover {
+    background: rgba(191, 97, 106, 0.18);
+}
+
+.notif-rm-icon {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Free Solid";
+    font-size: 10px;
+    font-weight: 900;
+    color: #BF616A;
 }
 
 /* Tray */
@@ -531,6 +635,7 @@ window {
     border-radius: 8px;
     padding: 8px;
     transition: border-color 150ms ease, background-color 150ms ease;
+    min-width: 236px;
 }
 
 .ws-card:hover {

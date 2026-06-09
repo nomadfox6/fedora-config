@@ -211,6 +211,46 @@ function runSync(argv: string[]): string {
     }
 }
 
+type DunstHistoryEntry = {
+    id: number
+    summary: string
+    body: string
+    appname: string
+    urgency: string
+    timestamp: number
+    stackTag: string
+}
+
+function getDunstHistory(limit = 30): DunstHistoryEntry[] {
+    const raw = runSync(["dunstctl", "history"])
+    if (!raw) return []
+    try {
+        const parsed = JSON.parse(raw) as {
+            data?: Array<Array<Record<string, { data?: string | number }>>>
+        }
+        const rows = parsed.data?.[0] ?? []
+        const entries = rows.map((row) => {
+            const get = (key: string, fallback: string | number) =>
+                row[key]?.data ?? fallback
+            return {
+                id: Number(get("id", 0)),
+                summary: String(get("summary", "")),
+                body: String(get("body", "")),
+                appname: String(get("appname", "")),
+                urgency: String(get("urgency", "NORMAL")),
+                timestamp: Number(get("timestamp", 0)),
+                stackTag: String(get("stack_tag", "")),
+            }
+        })
+        const filtered = entries
+            .filter((entry) => entry.stackTag !== "workspace")
+            .sort((a, b) => (b.timestamp - a.timestamp) || (b.id - a.id))
+        return filtered.slice(0, limit)
+    } catch {
+        return []
+    }
+}
+
 function CtrlBtn({ icon, tooltip, poll, onToggle }: {
     icon: string,
     tooltip: string,
@@ -604,6 +644,87 @@ function RightColumn({ hide }: { hide: () => void }) {
     )
 }
 
+function NotificationHistoryColumn({ panelVisible }: { panelVisible: () => boolean }) {
+    let last: DunstHistoryEntry[] = []
+    const items = createPoll([] as DunstHistoryEntry[], 1500, () => {
+        if (!panelVisible()) return last
+        last = getDunstHistory(30)
+        return last
+    })
+
+    const run = (argv: string[]) =>
+        Gio.Subprocess.new(argv, Gio.SubprocessFlags.NONE)
+
+    const urgencyClass = (urgency: string) => {
+        if (urgency === "CRITICAL") return "notif-critical"
+        if (urgency === "LOW") return "notif-low"
+        return "notif-normal"
+    }
+
+    return (
+        <box cssClasses={["notif-col"]} orientation={Gtk.Orientation.VERTICAL} halign={Gtk.Align.FILL} vexpand={true}>
+            <label cssClasses={["notif-title"]} label="Notifications" halign={Gtk.Align.START} />
+            <Gtk.ScrolledWindow
+                cssClasses={["notif-scroll"]}
+                hscrollbarPolicy={Gtk.PolicyType.NEVER}
+                vscrollbarPolicy={Gtk.PolicyType.AUTOMATIC}
+                hexpand={true}
+                vexpand={true}
+                $={(self) => {
+                    self.set_propagate_natural_height(false)
+                    self.set_min_content_height(0)
+                }}
+            >
+                <box orientation={Gtk.Orientation.VERTICAL} cssClasses={["notif-list"]}>
+                    <label
+                        cssClasses={["notif-empty"]}
+                        label="No notifications"
+                        halign={Gtk.Align.START}
+                        visible={items.as((arr) => arr.length === 0)}
+                    />
+                    <For each={items.as((arr) => arr.slice(0, 12))}>
+                        {(item: DunstHistoryEntry) => (
+                            <box cssClasses={["notif-row", urgencyClass(item.urgency)]}>
+                                <button
+                                    cssClasses={["notif-item-btn"]}
+                                    hexpand={true}
+                                    onClicked={() => run(["dunstctl", "history-pop", item.id.toString()])}
+                                >
+                                    <box orientation={Gtk.Orientation.VERTICAL} cssClasses={["notif-text"]}>
+                                        <label
+                                            cssClasses={["notif-summary"]}
+                                            halign={Gtk.Align.START}
+                                            xalign={0}
+                                            label={item.summary || "(no title)"}
+                                            ellipsize={3}
+                                            maxWidthChars={36}
+                                        />
+                                        <label
+                                            cssClasses={["notif-body"]}
+                                            halign={Gtk.Align.START}
+                                            xalign={0}
+                                            label={item.body || item.appname}
+                                            ellipsize={3}
+                                            maxWidthChars={42}
+                                        />
+                                    </box>
+                                </button>
+                                <button
+                                    cssClasses={["notif-rm-btn"]}
+                                    tooltipText="Remove from history"
+                                    onClicked={() => run(["dunstctl", "history-rm", item.id.toString()])}
+                                >
+                                    <label cssClasses={["notif-rm-icon"]} label={"\uF00D"} />
+                                </button>
+                            </box>
+                        )}
+                    </For>
+                </box>
+            </Gtk.ScrolledWindow>
+        </box>
+    )
+}
+
 // ── Workspace Switcher Panel ──────────────────────────────────────────────────
 
 // ── Idle Preset ───────────────────────────────────────────────────────────────
@@ -809,6 +930,7 @@ function Panel() {
 
     const hide = () => { win.visible = false }
     const showSettings = () => { app.get_window("settings-panel")!.visible = true }
+    const isVisible = () => !!win && win.visible
 
     const refreshListeners: (() => void)[] = []
     const refreshSignal = {
@@ -853,9 +975,10 @@ function Panel() {
                 halign={Gtk.Align.CENTER}
                 valign={Gtk.Align.CENTER}
             >
-                <box orientation={Gtk.Orientation.HORIZONTAL} halign={Gtk.Align.CENTER}>
+                <box cssClasses={["panel-top-row"]} orientation={Gtk.Orientation.HORIZONTAL} halign={Gtk.Align.CENTER} valign={Gtk.Align.FILL}>
                     <Clock hide={hide} showSettings={showSettings} />
                     <RightColumn hide={hide} />
+                    <NotificationHistoryColumn panelVisible={isVisible} />
                 </box>
                 <Gtk.Separator cssClasses={["panel-separator"]} orientation={Gtk.Orientation.HORIZONTAL} />
                 <label
@@ -980,6 +1103,9 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
     return (
         <button
             cssClasses={isActive ? ["ws-card", "ws-card-active"] : ["ws-card"]}
+            widthRequest={MINIMAP_W + 16}
+            hexpand={false}
+            halign={Gtk.Align.START}
             onClicked={() => {
                 hypr.dispatch("workspace", wsId.toString())
                 hide()
@@ -1051,6 +1177,7 @@ function WorkspaceOverview({ hide, refreshSignal }: {
                 orientation: Gtk.Orientation.HORIZONTAL,
                 cssClasses: ["ws-overview-row"],
                 spacing: 12,
+                halign: Gtk.Align.CENTER,
             })
             for (const ws of row) {
                 const card = WorkspaceCard({ ws, focusedWs, hide }) as Gtk.Widget
