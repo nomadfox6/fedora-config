@@ -1050,30 +1050,65 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
             child = next
         }
 
-        const monName = ws.monitor
-        const mon = getMonitorGeom(monName)
-        const [monW, monH] = [mon.width, mon.height]
-        const monOffX = mon.x
-        const monOffY = mon.y
-        const scaleX = MINIMAP_W / monW
-        const scaleY = MINIMAP_H / monH
-
         const clients = ws.get_clients()
         const focusedAddr = hypr.focusedClient?.address
+        const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v))
+
+        const monName = ws.monitor?.name ?? ""
+        const mon = getMonitorGeom(monName)
+        const monW = Math.max(1, mon.width)
+        const monH = Math.max(1, mon.height)
+        const monOffX = mon.x
+        const monOffY = mon.y
+
+        let srcMinX = monOffX
+        let srcMinY = monOffY
+        let srcMaxX = monOffX + monW
+        let srcMaxY = monOffY + monH
+
+        if (clients.length > 0) {
+            const minClientX = Math.min(...clients.map((c) => c.x))
+            const minClientY = Math.min(...clients.map((c) => c.y))
+            const maxClientX = Math.max(...clients.map((c) => c.x + c.width))
+            const maxClientY = Math.max(...clients.map((c) => c.y + c.height))
+
+            srcMinX = clamp(minClientX, monOffX, monOffX + monW - 1)
+            srcMinY = clamp(minClientY, monOffY, monOffY + monH - 1)
+            srcMaxX = clamp(maxClientX, srcMinX + 1, monOffX + monW)
+            srcMaxY = clamp(maxClientY, srcMinY + 1, monOffY + monH)
+        }
+
+        const srcW = Math.max(1, srcMaxX - srcMinX)
+        const srcH = Math.max(1, srcMaxY - srcMinY)
+        const scaleX = MINIMAP_W / srcW
+        const scaleY = MINIMAP_H / srcH
 
         for (const client of clients) {
-            const x = Math.round((client.x - monOffX) * scaleX)
-            const y = Math.round((client.y - monOffY) * scaleY)
-            const w = Math.max(4, Math.round(client.width * scaleX))
-            const h = Math.max(4, Math.round(client.height * scaleY))
+            const rawX1 = (client.x - srcMinX) * scaleX
+            const rawY1 = (client.y - srcMinY) * scaleY
+            const rawX2 = (client.x + client.width - srcMinX) * scaleX
+            const rawY2 = (client.y + client.height - srcMinY) * scaleY
+
+            const x1 = clamp(Math.floor(rawX1), 0, MINIMAP_W)
+            const y1 = clamp(Math.floor(rawY1), 0, MINIMAP_H)
+            const x2 = clamp(Math.ceil(rawX2), 0, MINIMAP_W)
+            const y2 = clamp(Math.ceil(rawY2), 0, MINIMAP_H)
+
+            const x = x1
+            const y = y1
+            const w = x2 - x1
+            const h = y2 - y1
+
+            if (w <= 0 || h <= 0) continue
 
             const isFocused = isActive && client.address === focusedAddr
 
             // Truncate title to fit width (~1 char per 6px at 8px font)
             const maxChars = Math.max(4, Math.floor(w / 6))
-            const title = client.title.length > maxChars
-                ? client.title.substring(0, maxChars - 1) + "…"
-                : client.title
+            const clientTitle = client.title ?? ""
+            const title = clientTitle.length > maxChars
+                ? clientTitle.substring(0, maxChars - 1) + "…"
+                : clientTitle
 
             const winBox = new Gtk.Box({
                 cssClasses: isFocused
@@ -1083,17 +1118,24 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
                 heightRequest: h,
                 halign: Gtk.Align.START,
                 valign: Gtk.Align.START,
+                hexpand: false,
+                vexpand: false,
                 overflow: Gtk.Overflow.HIDDEN,
             })
+            winBox.set_size_request(w, h)
 
             const lbl = new Gtk.Label({
                 cssClasses: ["ws-minimap-window-title"],
                 label: title,
-                halign: Gtk.Align.CENTER,
-                valign: Gtk.Align.CENTER,
+                halign: Gtk.Align.FILL,
+                valign: Gtk.Align.FILL,
+                xalign: 0.5,
+                yalign: 0.5,
+                justify: Gtk.Justification.CENTER,
                 ellipsize: 3,
                 maxWidthChars: maxChars,
                 hexpand: true,
+                vexpand: true,
             })
             winBox.append(lbl)
             minimap.put(winBox, x, y)
@@ -1132,8 +1174,14 @@ function WorkspaceCard({ ws, focusedWs, hide }: {
                     cssClasses={["ws-minimap"]}
                     widthRequest={MINIMAP_W}
                     heightRequest={MINIMAP_H}
+                    hexpand={false}
+                    vexpand={false}
+                    halign={Gtk.Align.START}
+                    valign={Gtk.Align.START}
+                    overflow={Gtk.Overflow.HIDDEN}
                     $={(self) => {
                         minimap = self
+                        self.set_size_request(MINIMAP_W, MINIMAP_H)
                         refreshMinimap()
                     }}
                 />

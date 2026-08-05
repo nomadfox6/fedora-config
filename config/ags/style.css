@@ -684,6 +684,7 @@ window {
 .ws-minimap-window-title {
     font-size: 8px;
     color: #D8DEE9;
+    text-align: center;
 }
 
 /* ── Battery bar states ──────────────────────────────────────────────────── */
