@@ -43,7 +43,10 @@ dnf5 install -y \
     hyprlock \
     hypridle \
     `# Network` \
+    NetworkManager-wifi \
     network-manager-applet \
+    iwlwifi-mvm-firmware \
+    linux-firmware \
     wireguard-tools \
     `# Browser` \
     firefox \
