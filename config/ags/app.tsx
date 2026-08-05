@@ -7,7 +7,7 @@ import AstalTray from "gi://AstalTray?version=0.1"
 import AstalHyprland from "gi://AstalHyprland?version=0.1"
 import AstalBattery from "gi://AstalBattery?version=0.1"
 import { createPoll } from "ags/time"
-import { createBinding, createComputed, For } from "ags"
+import { createBinding, For } from "ags"
 
 // ── Clock + Date (top-left) ──────────────────────────────────────────────────
 
@@ -146,55 +146,6 @@ function Tray() {
                 {(item: AstalTray.TrayItem) => <TrayItem item={item} />}
             </For>
         </box>
-    )
-}
-
-// ── Workspace + Window List (below tray, right side) ─────────────────────────
-
-function WorkspaceInfo({ hide }: { hide: () => void }) {
-    const hypr = AstalHyprland.get_default()
-
-    const focusedWs = createBinding(hypr, "focused-workspace")
-    const allClients = createBinding(hypr, "clients")
-
-    const wsName = createComputed(
-        [focusedWs],
-        (ws: AstalHyprland.Workspace | null) => ws ? `Desktop ${ws.name}` : ""
-    )
-
-    const clientTitles = createComputed(
-        [focusedWs, allClients],
-        (ws: AstalHyprland.Workspace | null, _all: AstalHyprland.Client[]) =>
-            ws
-                ? ws.get_clients()
-                    .map((c) => c.title)
-                    .filter((t) => t && t.length > 0)
-                : []
-    )
-
-    return (
-        <button
-            cssClasses={["workspace-info-btn"]}
-            halign={Gtk.Align.END}
-            onClicked={() => { hide() }}
-        >
-            <box cssClasses={["workspace-info"]} orientation={Gtk.Orientation.VERTICAL} halign={Gtk.Align.END}>
-                <label cssClasses={["ws-name"]} label={wsName} halign={Gtk.Align.END} />
-                <box cssClasses={["window-list"]} orientation={Gtk.Orientation.VERTICAL}>
-                    <For each={clientTitles}>
-                        {(title: string) => (
-                            <label
-                                cssClasses={["window-title"]}
-                                label={title}
-                                halign={Gtk.Align.END}
-                                ellipsize={3}
-                                maxWidthChars={32}
-                            />
-                        )}
-                    </For>
-                </box>
-            </box>
-        </button>
     )
 }
 
@@ -587,52 +538,9 @@ function PowerButtons() {
     )
 }
 
-// ── Workspace Switcher (between tray and workspace info) ──────────────────────
+// ── Right column: Tray, sliders, controls, power ──────────────────────────────
 
-function WorkspaceSwitcher({ hide }: { hide: () => void }) {
-    const hypr = AstalHyprland.get_default()
-    const workspaces = createBinding(hypr, "workspaces").as(
-        (ws: AstalHyprland.Workspace[]) => [...ws].sort((a, b) => a.id - b.id)
-    )
-    const focusedWs = createBinding(hypr, "focused-workspace")
-
-    return (
-        <box cssClasses={["ws-switcher"]} halign={Gtk.Align.END} margin_bottom={8}>
-            <For each={workspaces}>
-                {(ws: AstalHyprland.Workspace) => {
-                    const btn = (
-                        <button
-                            cssClasses={["ws-btn"]}
-                            tooltipText={`Workspace ${ws.name}`}
-                            onClicked={() => {
-                                hypr.dispatch("workspace", ws.id.toString())
-                                hide()
-                            }}
-                            $={(self) => {
-                                const update = () => {
-                                    const focused = focusedWs.get()
-                                    const isActive = focused && focused.id === ws.id
-                                    self.cssClasses = isActive
-                                        ? ["ws-btn", "ws-btn-active"]
-                                        : ["ws-btn"]
-                                }
-                                focusedWs.subscribe(update)
-                                setTimeout(update, 50)
-                            }}
-                        >
-                            <label cssClasses={["ws-btn-label"]} label={ws.id.toString()} />
-                        </button>
-                    ) as Gtk.Button
-                    return btn
-                }}
-            </For>
-        </box>
-    )
-}
-
-// ── Right column: Tray, workspace switcher, window list, then control/power ───
-
-function RightColumn({ hide }: { hide: () => void }) {
+function RightColumn() {
     return (
         <box cssClasses={["right-col"]} orientation={Gtk.Orientation.VERTICAL} halign={Gtk.Align.END}>
             <Tray />
@@ -977,7 +885,7 @@ function Panel() {
             >
                 <box cssClasses={["panel-top-row"]} orientation={Gtk.Orientation.HORIZONTAL} halign={Gtk.Align.CENTER} valign={Gtk.Align.FILL}>
                     <Clock hide={hide} showSettings={showSettings} />
-                    <RightColumn hide={hide} />
+                    <RightColumn />
                     <NotificationHistoryColumn panelVisible={isVisible} />
                 </box>
                 <Gtk.Separator cssClasses={["panel-separator"]} orientation={Gtk.Orientation.HORIZONTAL} />

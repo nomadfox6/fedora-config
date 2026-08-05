@@ -16,13 +16,6 @@ window {
 }
 
 /* Top row: clock on left, right column on right */
-.panel-top-row {
-}
-
-/* Left side */
-.clock-box {
-    /* expand to push right column to the far right */
-}
 
 .time {
     font-size: 52px;
@@ -163,9 +156,6 @@ window {
     background: rgba(136, 192, 208, 0.10);
 }
 
-.notif-text {
-}
-
 .notif-summary {
     font-size: 12px;
     font-weight: bold;
@@ -228,85 +218,6 @@ window {
 
 .tray-item:hover {
     background-color: rgba(136, 192, 208, 0.2);
-}
-
-/* Workspace switcher */
-.ws-switcher {
-}
-
-.ws-btn,
-.ws-btn:focus,
-.ws-btn:active {
-    background: transparent;
-    box-shadow: none;
-    border: 2px solid #4C566A;
-    border-radius: 6px;
-    min-width: 28px;
-    min-height: 28px;
-    padding: 0 6px;
-    margin-left: 6px;
-}
-
-.ws-btn:first-child {
-    margin-left: 0;
-}
-
-.ws-btn:hover {
-    background: rgba(136, 192, 208, 0.15);
-    border-color: #88C0D0;
-}
-
-.ws-btn-active,
-.ws-btn-active:focus,
-.ws-btn-active:active {
-    border-color: #88C0D0;
-    background: rgba(136, 192, 208, 0.2);
-}
-
-.ws-btn-label {
-    font-size: 12px;
-    color: #8FBCBB;
-}
-
-.ws-btn-active .ws-btn-label {
-    color: #88C0D0;
-    font-weight: bold;
-}
-
-/* Workspace info button */
-.workspace-info-btn,
-.workspace-info-btn:focus,
-.workspace-info-btn:active {
-    background: transparent;
-    box-shadow: none;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    padding: 6px 8px;
-}
-
-.workspace-info-btn:hover {
-    background: rgba(136, 192, 208, 0.08);
-    border-color: #4C566A;
-}
-
-/* Workspace info */
-.workspace-info {
-}
-
-.ws-name {
-    font-size: 13px;
-    font-weight: bold;
-    color: #88C0D0;
-    margin-bottom: 6px;
-}
-
-.window-list {
-}
-
-.window-title {
-    font-size: 12px;
-    color: #8FBCBB;
-    margin-bottom: 3px;
 }
 
 /* Power buttons */
@@ -378,9 +289,6 @@ window {
     margin-left: 4px;
 }
 
-.slider-btns {
-}
-
 .slider-btn,
 .slider-btn:focus,
 .slider-btn:active {
@@ -449,9 +357,6 @@ window {
 
 .ctrl-btn:hover .power-icon {
     color: #ECEFF4;
-}
-
-.power-buttons {
 }
 
 .power-btn,
@@ -620,12 +525,7 @@ window {
     margin-bottom: 16px;
 }
 
-.ws-overview-grid {
-    /* vertical stack of rows */
-}
-
 .ws-overview-row {
-    /* horizontal row of up to 5 cards */
     margin-bottom: 12px;
 }
 
@@ -651,10 +551,6 @@ window {
 .ws-card-active:hover {
     border-color: #8FBCBB;
     background-color: rgba(136, 192, 208, 0.18);
-}
-
-.ws-card-inner {
-    /* vertical stack: title, minimap */
 }
 
 .ws-card-title {
@@ -684,7 +580,6 @@ window {
 .ws-minimap-window-title {
     font-size: 8px;
     color: #D8DEE9;
-    text-align: center;
 }
 
 /* ── Battery bar states ──────────────────────────────────────────────────── */
