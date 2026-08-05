@@ -220,6 +220,43 @@ window {
     background-color: rgba(136, 192, 208, 0.2);
 }
 
+/* Tray popover menus (e.g. nm-applet) */
+popover,
+popover.background {
+    background-color: rgba(46, 52, 64, 0.98);
+    color: #D8DEE9;
+    border: 1px solid #4C566A;
+    border-radius: 8px;
+}
+
+popover contents {
+    background-color: transparent;
+    padding: 6px;
+}
+
+modelbutton,
+modelbutton label {
+    color: #D8DEE9;
+}
+
+modelbutton {
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+modelbutton:hover {
+    background-color: rgba(136, 192, 208, 0.18);
+    color: #ECEFF4;
+}
+
+modelbutton:hover label {
+    color: #ECEFF4;
+}
+
+popover separator {
+    background-color: #4C566A;
+}
+
 /* Power buttons */
 .ctrl-buttons {
     margin-bottom: 8px;
